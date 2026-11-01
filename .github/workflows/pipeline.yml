@@ -1,0 +1,82 @@
+name: Tourism Package Prediction End-to-End MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # -----JOB 1 - Register Dataset ----------
+  prep_data:
+    name: Data Preparation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: os-actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas scikit-learn
+
+      - name: Run Data Preparation
+        run: |
+          python tourism_project/model_building/prep.py
+
+      - name: Upload Split Datasets
+        uses: actions/upload-artifact@v4
+        with:
+          name: split-datasets
+          path: |
+            tourism_project/model_building/train.csv
+            tourism_project/model_building/test.csv
+
+  train_model:
+    name: Model Training & Evaluation
+    needs: prep_data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: os-actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas scikit-learn xgboost joblib
+
+      - name: Download Split Datasets
+        uses: actions/download-artifact@v4
+        with:
+          name: split-datasets
+          path: tourism_project/model_building
+
+      - name: Run Model Training (Production)
+        run: |
+          python tourism_project/model_building/train_prod.py
+
+      - name: Copy Model to App Folder
+        run: |
+          cp tourism_project/model_building/model.joblib tourism_project/app/model.joblib
+
+      - name: Commit and Push Updated Model & Files
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add tourism_project/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update serialized model and datasets from pipeline [skip ci]" && git push origin main)
