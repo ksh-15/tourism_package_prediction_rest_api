@@ -44,6 +44,9 @@ jobs:
     name: Model Training & Evaluation
     needs: prep_data
     runs-on: ubuntu-latest
+    # Explicitly grant permission to write contents so git push can succeed!
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -74,7 +77,7 @@ jobs:
 
       - name: Commit and Push Updated Model & Files
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
