@@ -81,7 +81,7 @@ def main():
         )
 
         grid_search.fit(X_train, y_train)
-        best_pipeline = grid_search.best_estimator_
+        best_pipeline = grid_search.best_estimatorfg = grid_search.best_estimator_
 
         # 4. Logging parameters & performance metrics to MLflow
         mlflow.log_params(grid_search.best_params_)
@@ -107,9 +107,9 @@ def main():
         joblib.dump(best_pipeline, model_path)
         print(f"\nSaved optimized model pipeline to: {model_path}")
 
-        # Log final joblib artifact and sklearn model object within MLflow
+        # Log final joblib artifact and sklearn model object within MLflow (using pickle fallback to avoid skops trust errors)
         mlflow.log_artifact(model_path)
-        mlflow.sklearn.log_model(best_pipeline, artifact_path="model")
+        mlflow.sklearn.log_model(best_pipeline, name="model", serialization_format="pickle")
 
         print("MLflow experiment logging completed.")
 
