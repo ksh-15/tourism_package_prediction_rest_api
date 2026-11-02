@@ -21,12 +21,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas scikit-learn
+          pip install pandas scikit-learn==1.5.1
 
       - name: Run Data Preparation
         run: |
@@ -51,12 +51,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas scikit-learn xgboost joblib
+          pip install pandas scikit-learn==1.5.1 xgboost joblib mlflow
 
       - name: Download Split Datasets
         uses: actions/download-artifact@v4
